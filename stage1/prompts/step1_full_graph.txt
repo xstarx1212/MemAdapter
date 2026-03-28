@@ -1,0 +1,54 @@
+You are given a set of documents.
+
+Your task is to construct a FULL MEMORY GRAPH that organizes entities and
+their relations appearing in the documents.
+
+The full memory graph should be COMPREHENSIVE rather than minimal.
+Do NOT optimize the graph for any specific question.
+
+====================
+GRAPH CONSTRUCTION RULES
+====================
+
+1. Nodes
+- Each node represents an entity, event, or concept explicitly mentioned
+  or strongly implied in the documents.
+- Assign each node a unique node id: N1, N2, N3, ...
+- Each node must have a short natural language description.
+
+2. Edges
+- Each edge represents a relation between two nodes.
+- Assign each edge a unique edge id: E1, E2, E3, ...
+- Each edge must specify:
+  - source node id
+  - target node id
+  - an optional natural language relation description (for readability only)
+
+3. Coverage
+- Include all important entities and relations needed to capture the
+  structure of the documents.
+- Redundant edges are allowed.
+
+4. Output format must be followed EXACTLY.
+
+====================
+STRICT OUTPUT FORMAT
+====================
+
+[FULL_GRAPH]
+<NODES>
+N1: description
+N2: description
+...
+
+<EDGES>
+E1: N1 -> N2
+E2: N2 -> N3
+...
+
+====================
+INPUT
+====================
+
+Documents:
+{DOCUMENTS}

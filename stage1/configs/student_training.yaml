@@ -1,0 +1,154 @@
+# Student Training Curriculum for Stage I
+# 核心策略：先用高置信度样本训练，不追求覆盖；不收敛不加难度，只加同分布数据
+
+student_model: Qwen/Qwen2.5-1.5B
+
+training_objective: kl  # 'ce' (cross-entropy) or 'kl' (KL distillation) - Stage I uses KL
+
+# Step 1: 样本选择策略
+# 原则：先用高置信度样本训练
+sample_selection:
+  sort_by: confidence
+  order: descending  # 高置信度优先
+  
+  # 数据源（所有 teacher 标注结果）
+  source_files:
+    - data/teacher_supervision/phase_0_sanity.jsonl
+    - data/teacher_supervision/phase_1_core.jsonl
+    - data/teacher_supervision/phase_2_expand.jsonl
+
+# Step 2: 课程学习计划
+curriculum:
+  - name: phase_0_overfit
+    description: |
+      Overfit a very small high-confidence set to ensure the model
+      learns the output format and basic subgraph generation behavior.
+    
+    # 样本选择
+    max_samples: 500
+    min_confidence: 0.85
+    
+    # 训练参数
+    num_epochs: 5
+    learning_rate: 2.0e-5
+    batch_size: 8
+    grad_accumulation: 4
+    
+    # 输出
+    output_dir: outputs/stage1_curriculum/phase_0_overfit
+    
+    # 收敛检查
+    convergence_check:
+      enabled: true
+      metric: train_loss
+      patience: 3
+      min_improvement: 0.01
+  
+  - name: phase_1_stable
+    description: |
+      Main training phase using high-quality supervision only.
+      This is the core of Stage I training.
+    
+    # 样本选择
+    max_samples: 8000
+    min_confidence: 0.75
+    
+    # 训练参数
+    num_epochs: 3
+    learning_rate: 2.0e-5
+    batch_size: 8
+    grad_accumulation: 4
+    
+    # 输出
+    output_dir: outputs/stage1_curriculum/phase_1_stable
+    
+    # 从上一阶段继续
+    resume_from: outputs/stage1_curriculum/phase_0_overfit/final
+    
+    # 收敛检查
+    convergence_check:
+      enabled: true
+      metric: eval_loss
+      patience: 5
+      min_improvement: 0.005
+  
+  - name: phase_2_expand
+    description: |
+      Expand coverage by including medium-confidence samples
+      ONLY after convergence on high-confidence data.
+    
+    # 样本选择
+    max_samples: 20000
+    min_confidence: 0.60
+    
+    # 训练参数
+    num_epochs: 2
+    learning_rate: 1.0e-5  # 降低学习率
+    batch_size: 8
+    grad_accumulation: 4
+    
+    # 输出
+    output_dir: outputs/stage1_curriculum/phase_2_expand
+    
+    # 从上一阶段继续
+    resume_from: outputs/stage1_curriculum/phase_1_stable/final
+    
+    # 收敛检查
+    convergence_check:
+      enabled: true
+      metric: eval_loss
+      patience: 5
+      min_improvement: 0.005
+
+# Step 3: Fallback 策略
+# 原则：如果不收敛，不加难度，只加同分布数据
+fallback:
+  if_not_converged:
+    action: add_more_same_distribution
+    description: |
+      Do NOT lower confidence threshold aggressively.
+      Instead, add more samples with similar confidence
+      and similar document length distribution.
+    
+    # 具体操作
+    strategy:
+      # 保持置信度阈值
+      maintain_min_confidence: true
+      
+      # 增加样本数量（从同分布中）
+      increase_samples_by: 2000
+      
+      # 保持文档长度分布相似
+      match_doc_length_distribution: true
+
+# Step 4: 通用训练设置
+training:
+  # 序列长度
+  max_input_len: 4096
+  max_output_len: 512
+  
+  # 优化器
+  optimizer: adamw
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  lr_scheduler: cosine
+  max_grad_norm: 1.0
+  
+  # 精度
+  bf16: true
+  fp16: false
+  
+  # 日志和保存
+  logging_steps: 10
+  eval_steps: 500
+  save_steps: 500
+  save_total_limit: 3
+  
+  # 评估
+  eval_strategy: steps
+  eval_subset_size: 1000  # 从高置信度样本中抽取
+
+# Step 5: 数据增强（可选）
+augmentation:
+  enabled: false
+  # 未来可以添加数据增强策略

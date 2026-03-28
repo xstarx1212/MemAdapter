@@ -1,0 +1,51 @@
+# Stage I Training Configuration for Qwen 1.5B
+
+# Model
+student_model: "Qwen/Qwen2.5-1.5B"
+teacher_model: "Qwen/Qwen2.5-72B-Instruct"
+
+# Data
+train_data: "data/teacher_supervision/hotpot_train_graph.jsonl"
+eval_data: "data/teacher_supervision/hotpot_dev_graph.jsonl"
+max_train_samples: 50000  # null for all
+max_eval_samples: 1000
+
+# Input/Output lengths
+max_input_len: 4096
+max_output_len: 512
+
+# Training
+distill_mode: "kl"  # "kl" or "ce"
+num_epochs: 2
+learning_rate: 2.0e-5
+warmup_ratio: 0.05
+weight_decay: 0.01
+
+# Batch size
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 8
+gradient_accumulation_steps: 8
+
+# Optimization
+optimizer: "adamw"
+lr_scheduler_type: "cosine"
+max_grad_norm: 1.0
+
+# Precision
+bf16: true
+fp16: false
+
+# Logging & Saving
+output_dir: "outputs/stage1_qwen1p5b"
+logging_steps: 10
+eval_steps: 500
+save_steps: 500
+save_total_limit: 3
+
+# KL Distillation specific
+temperature: 1.0  # for softmax in KL
+kl_loss_weight: 1.0
+
+# Misc
+seed: 42
+dataloader_num_workers: 4

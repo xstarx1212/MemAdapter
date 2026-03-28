@@ -1,0 +1,31 @@
+You are given documents. Build a complete memory graph.
+
+TASK:
+Create a FULL memory graph covering all entities and relations in the documents.
+
+RULES:
+1. Include ALL important entities - do NOT filter for any specific question
+2. Use node IDs: N1, N2, N3, ...
+3. Each node must have a clear description
+4. Each edge must show a clear relation
+5. Follow the EXACT output format below
+
+Documents:
+{DOCS}
+
+OUTPUT FORMAT (REQUIRED):
+[FULL_GRAPH]
+<NODES>
+N1: description of entity or concept
+N2: description of entity or concept
+N3: description of entity or concept
+
+<EDGES>
+N1 -> N2: description of relation
+N2 -> N3: description of relation
+
+IMPORTANT:
+- Start with [FULL_GRAPH]
+- List ALL nodes before ANY edges
+- Every node needs: ID and description
+- Every edge needs: source -> target: relation

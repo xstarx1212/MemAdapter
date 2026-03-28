@@ -1,0 +1,40 @@
+# Student Training Curriculum for Stage I
+
+student_model: Qwen/Qwen2.5-1.5B
+training_objective: distillation   # KL or CE (fallback)
+
+# Step 1: 按 teacher confidence 排序
+sample_ranking:
+  sort_by: confidence
+  order: descending   # 高置信度优先
+
+# Step 2: 分阶段训练计划
+curriculum:
+  - name: phase_0_overfit
+    description: >
+      Overfit a very small high-confidence set to ensure the model
+      learns the output format and basic subgraph generation behavior.
+    max_samples: 500
+    min_confidence: 0.85
+
+  - name: phase_1_stable
+    description: >
+      Main training phase using high-quality supervision only.
+    max_samples: 8000
+    min_confidence: 0.75
+
+  - name: phase_2_expand
+    description: >
+      Expand coverage by including medium-confidence samples
+      after convergence on high-confidence data.
+    max_samples: 20000
+    min_confidence: 0.60
+
+# Step 3: 如果训练不收敛，fallback 策略
+fallback:
+  if_not_converged:
+    action: add_more_same_distribution_data
+    description: >
+      Do NOT lower confidence threshold aggressively.
+      Instead, add more samples with similar confidence
+      and similar document length distribution.

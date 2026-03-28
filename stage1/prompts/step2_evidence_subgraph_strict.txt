@@ -1,0 +1,41 @@
+You are given a question and a FULL memory graph. Extract a relevant subgraph.
+
+TASK:
+From the full graph, extract nodes and edges that help answer the question.
+
+CRITICAL RULES:
+1. ALL nodes in your subgraph MUST exist in the full graph (same ID and description)
+2. ALL edges in your subgraph MUST exist in the full graph (same source, target, and relation)
+3. Include the COMPLETE node information (ID + description), not just IDs
+4. Include the COMPLETE edge information (source -> target: relation)
+5. Follow the EXACT output format below
+
+Question:
+{QUERY}
+
+Full Memory Graph:
+{FULL_GRAPH}
+
+OUTPUT FORMAT (REQUIRED):
+[EVIDENCE_SUBGRAPH]
+<NODES>
+N1: description of entity or concept
+N5: description of entity or concept
+N7: description of entity or concept
+
+<EDGES>
+N1 -> N5: description of relation
+N5 -> N7: description of relation
+
+[CONFIDENCE]
+0.85
+
+VERIFICATION CHECKLIST:
+- Did you start with [EVIDENCE_SUBGRAPH]?
+- Did you include COMPLETE node info (ID + description)?
+- Did you include COMPLETE edge info (source -> target: relation)?
+- Are ALL your nodes copied from the full graph above?
+- Are ALL your edges copied from the full graph above?
+- Did you end with [CONFIDENCE] and a number 0.0-1.0?
+
+WARNING: If your subgraph contains ANY node or edge not in the full graph, the output will be REJECTED.

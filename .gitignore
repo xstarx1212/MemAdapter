@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Data & outputs (do not commit large files)
+stage1/data/hotpotqa_raw/
+stage1/data/teacher_supervision/*.jsonl
+stage1/outputs/
+stage1/eval_results/
+stage2/data/merged/*.jsonl
+stage2/eval_results/
+*.ckpt
+*.pt
+*.bin
+*.safetensors
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+
+# IDE & OS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs & jobs
+*.log
+*.out
+*.err
+.e*
+.o[0-9]*
+
+# Jupyter
+.ipynb_checkpoints/

@@ -1,0 +1,54 @@
+You are given:
+1. A question
+2. A FULL MEMORY GRAPH constructed earlier
+
+Your task is to extract an EFFECTIVE EVIDENCE SUBGRAPH that is useful
+for answering the question.
+
+====================
+DEFINITION
+====================
+
+An effective evidence subgraph is a subset of the full memory graph
+that provides useful structural evidence for answering the question.
+
+- The subgraph does NOT need to be minimal.
+- The subgraph does NOT need to be perfectly accurate.
+- The subgraph may contain redundant nodes or edges.
+- All nodes and edges MUST come from the full memory graph.
+
+====================
+STRICT SUBSET RULES
+====================
+
+1. You may ONLY reference node ids that appear in the full graph.
+2. You may ONLY reference edge ids that appear in the full graph.
+3. Do NOT introduce new node ids or edge ids.
+4. Do NOT rewrite or re-describe relations.
+5. If an edge id is included, its source and target nodes must also
+   be included in the subgraph.
+
+====================
+STRICT OUTPUT FORMAT
+====================
+
+[EVIDENCE_SUBGRAPH]
+<NODES>
+N?
+N?
+...
+
+<EDGES>
+E?
+E?
+...
+
+====================
+INPUT
+====================
+
+Question:
+{QUESTION}
+
+Full Memory Graph:
+{FULL_GRAPH}

@@ -1,0 +1,83 @@
+# Teacher Generation Schedule for Stage I
+# 核心策略：先标注简单+短的数据，确保监督稳定
+
+teacher_model: Qwen/Qwen2.5-72B-Instruct
+
+dataset:
+  name: HotpotQA
+  path: data/hotpotqa_raw/train.jsonl
+  max_docs_per_sample: 4
+
+# Step 1: 样本预处理和排序
+preprocessing:
+  # 计算每个样本的文档总长度
+  compute_doc_length: true
+  tokenizer: Qwen/Qwen2.5-1.5B  # 与 student 同族，用于长度估算
+  
+  # 按文档长度排序（先短后长）
+  sort_by: document_token_length
+  order: ascending
+
+# Step 2: 分阶段标注计划
+# 原则：teacher 先标注简单+短的数据
+stages:
+  - name: phase_0_sanity
+    description: "Small sanity-check batch to verify prompt, format, and pipeline"
+    num_samples: 300
+    max_doc_tokens: 1200
+    output_path: data/teacher_supervision/phase_0_sanity.jsonl
+    
+  - name: phase_1_core
+    description: "Core high-quality supervision. Short to medium inputs only"
+    num_samples: 10000
+    max_doc_tokens: 2400
+    output_path: data/teacher_supervision/phase_1_core.jsonl
+    
+  - name: phase_2_expand
+    description: "Expanded coverage with moderately longer documents"
+    num_samples: 30000
+    max_doc_tokens: 3600
+    output_path: data/teacher_supervision/phase_2_expand.jsonl
+
+# Step 3: Teacher 生成参数
+generation:
+  # Step 1: 生成完整图
+  step1_max_tokens: 4096
+  step1_temperature: 0.7
+  
+  # Step 2: 生成证据子图 + 置信度
+  step2_max_tokens: 1024
+  step2_temperature: 0.7
+  
+  # 批处理设置
+  batch_size: 1  # 72B 模型通常需要单个样本处理
+  
+  # 缓存完整图
+  cache_full_graphs: true
+  cache_path: data/teacher_supervision/full_graphs_cache.jsonl
+
+# Step 4: Teacher 输出要求
+output:
+  format: jsonl
+  required_fields:
+    - id
+    - documents
+    - query
+    - gold_full_graph
+    - gold_subgraph
+    - confidence  # 关键：teacher 自评置信度
+    - doc_token_length  # 用于后续分析
+  
+  # 置信度要求
+  confidence:
+    field_name: confidence
+    range: [0.0, 1.0]
+    description: "Confidence that the evidence subgraph is useful for answering the question"
+    parse_pattern: "\\[CONFIDENCE\\]\\s*([0-9.]+)"
+
+# Step 5: 质量检查（只检查格式，不做规则打分）
+validation:
+  check_format: true
+  check_subgraph_subset: true
+  # 不使用任何规则打分
+  use_rule_based_scoring: false

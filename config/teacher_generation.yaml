@@ -1,0 +1,58 @@
+# Teacher Generation Schedule for Stage I
+
+teacher_model: Qwen2.5-72B-Instruct
+
+dataset:
+  name: HotpotQA
+  split: train
+
+# Step 1: 样本排序（只做一次）
+prioritization:
+  # 按 document 总长度排序
+  sort_by: document_token_length
+  order: ascending   # 先短后长
+
+# Step 2: 分阶段标注计划
+stages:
+  - name: phase_0_sanity
+    description: >
+      Small sanity-check batch to verify prompt, format, and pipeline.
+    num_samples: 300
+    max_doc_tokens: 1200
+
+  - name: phase_1_core
+    description: >
+      Core high-quality supervision. Short to medium inputs only.
+    num_samples: 10000
+    max_doc_tokens: 2400
+
+  - name: phase_2_expand
+    description: >
+      Expanded coverage with moderately longer documents.
+    num_samples: 30000
+    max_doc_tokens: 3600
+
+# Step 3: Teacher 输出要求
+teacher_output:
+  generate_full_graph: true
+  generate_subgraph: true
+
+  # 关键：teacher 自评置信度
+  require_confidence: true
+  confidence_format:
+    field_name: confidence
+    range: [0.0, 1.0]
+    description: >
+      Confidence that the evidence subgraph is useful for answering the question,
+      not necessarily minimal or complete.
+
+# Step 4: 存储
+output:
+  format: jsonl
+  fields:
+    - id
+    - documents
+    - query
+    - gold_full_graph
+    - gold_subgraph
+    - confidence
