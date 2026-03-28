@@ -1,4 +1,4 @@
-# MemAdapter-Minimal
+# MemAdapter
 
 ![MemAdapter](assets/memadapter.png)
 
