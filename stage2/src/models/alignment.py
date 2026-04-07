@@ -107,15 +107,20 @@ class AlignmentModel(nn.Module):
     
     def forward_anchor(self, evidence_embedding: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass through anchor align module.
-        
+        Forward pass for anchor (evidence) side.
+
         Args:
-            evidence_embedding: Evidence subgraph embedding [batch, anchor_dim]
-        
+            evidence_embedding: Evidence embedding [batch, anchor_dim].
+                If loaded from .npy produced by extract_stage1_memory.py,
+                this is *already* anchor_align(g) — i.e. h^(a).
+                Applying anchor_align again would be a double-application bug.
+
         Returns:
             Anchor representation [batch, anchor_dim]
         """
-        return self.anchor_align(evidence_embedding)
+        # The .npy evidence embeddings are already h^(a) = anchor_align(g),
+        # so we pass them through as-is.  Do NOT re-apply anchor_align here.
+        return evidence_embedding
     
     def forward_paradigm(
         self,
@@ -179,15 +184,15 @@ class AlignmentModel(nn.Module):
     def get_trainable_params(self) -> List[nn.Parameter]:
         """Get list of trainable parameters."""
         params = []
-        
+
         # Projections are always trainable
         for proj in self.projections.values():
             params.extend(proj.parameters())
-        
-        # Anchor align may be trainable
-        if not self.freeze_anchor:
-            params.extend(self.anchor_align.parameters())
-        
+
+        # Note: anchor_align is NOT included because forward_anchor()
+        # passes evidence embeddings through as-is (they are already h^(a)).
+        # The module is retained only for checkpoint save/load compatibility.
+
         return params
     
     def save(self, save_path: str):
